@@ -4,12 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Commerce Frontend</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
     <header>
-        <h1>Welcome to Our Online Store</h1>
+        <div class="header-container">
+            <div class="logo-container">
+                <img src="assets/logo.png" alt="Store Logo" class="logo">
+            </div>
+            
+            <nav class="main-nav" id="main-nav" aria-label="Main navigation">
+                <ul>
+                    <li><a href="index.html" aria-current="page">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+            
+            <div class="header-actions">
+                <form class="search-container" role="search" action="search.html" method="get">
+                    <input type="text" placeholder="Search products..." class="search-input" aria-label="Search products" name="q">
+                    <button type="submit" class="search-button" aria-label="Submit search">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </form>
+                
+                <div class="cart-container">
+                    <a href="cart.html" class="cart-icon" aria-label="Shopping cart">
+                        <i class="fa fa-shopping-cart"></i>
+                        <span class="cart-count" aria-label="Items in cart">0</span>
+                    </a>
+                </div>
+                
+                <div class="hamburger-menu" role="button" tabindex="0">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
     </header>
+
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">Summer Collection 2023</h1>
+            <p class="hero-subtitle">Discover the latest trends with up to 50% off</p>
+            <div class="hero-cta">
+                <a href="products.html" class="cta-button primary">Shop Now</a>
+                <a href="collections/summer.html" class="cta-button secondary">View Collection</a>
+            </div>
+        </div>
+        <div class="hero-overlay"></div>
+    </section>
+
+    <main>
+        <!-- Main content will go here -->
+    </main>
+
     <script src="scripts/app.js"></script>
 </body>
 </html>
