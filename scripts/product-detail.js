@@ -230,41 +230,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (productPrice) productPrice.textContent = `$${currentProduct.price.toFixed(2)}`;
             if (productDescription) productDescription.textContent = currentProduct.description;
             
-            // Set product image with responsive features
+            // Set product image
             if (mainProductImage) {
                 mainProductImage.src = currentProduct.image;
                 mainProductImage.alt = currentProduct.title;
-                mainProductImage.setAttribute('loading', 'lazy');
                 
                 // Add error handler for image
                 mainProductImage.onerror = function() {
                     this.src = 'assets/placeholder.jpg';
                     this.alt = 'Product image not available';
                 };
-                
-                // If it's a local image, add srcset for responsive images
-                if (!currentProduct.image.includes('http')) {
-                    const imgUrl = currentProduct.image.split('.');
-                    const ext = imgUrl.pop();
-                    const basePath = imgUrl.join('.');
-                    
-                    // Create srcset for responsive images
-                    mainProductImage.srcset = `
-                        ${basePath}-small.${ext} 300w,
-                        ${basePath}-medium.${ext} 600w,
-                        ${basePath}-large.${ext} 1200w
-                    `;
-                    mainProductImage.sizes = '(max-width: 768px) 100vw, 50vw';
-                    
-                    // If WebP is supported, add WebP version
-                    if (localStorage.getItem('supportsWebP') === 'true') {
-                        mainProductImage.srcset = `
-                            ${basePath}-small.webp 300w,
-                            ${basePath}-medium.webp 600w,
-                            ${basePath}-large.webp 1200w
-                        `;
-                    }
-                }
             }
             
             // Set rating
@@ -466,7 +441,7 @@ document.addEventListener('DOMContentLoaded', function() {
             card.innerHTML = `
                 <a href="product.html?id=${product.id}" class="product-link">
                     <div class="product-image-container">
-                        <img src="${product.image}" alt="${product.title}" class="product-image" loading="lazy"
+                        <img src="${product.image}" alt="${product.title}" class="product-image" 
                              onerror="this.src='assets/placeholder.jpg'; this.alt='Product image not available';">
                     </div>
                 </a>
