@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "minify": "node scripts/minify.js",
+    "optimize-images": "echo \"Please install imagemin CLI and run: imagemin assets/images/* --out-dir=assets/images/optimized\"",
+    "build": "npm run minify"
   },
   "repository": {
     "type": "git",
@@ -19,5 +22,9 @@
   "description": "",
   "dependencies": {
     "firebase": "^11.6.1"
+  },
+  "devDependencies": {
+    "clean-css": "^5.3.2",
+    "terser": "^5.19.2"
   }
 }

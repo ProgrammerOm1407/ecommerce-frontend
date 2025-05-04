@@ -230,16 +230,41 @@ document.addEventListener('DOMContentLoaded', function() {
             if (productPrice) productPrice.textContent = `$${currentProduct.price.toFixed(2)}`;
             if (productDescription) productDescription.textContent = currentProduct.description;
             
-            // Set product image
+            // Set product image with responsive features
             if (mainProductImage) {
                 mainProductImage.src = currentProduct.image;
                 mainProductImage.alt = currentProduct.title;
+                mainProductImage.setAttribute('loading', 'lazy');
                 
                 // Add error handler for image
                 mainProductImage.onerror = function() {
                     this.src = 'assets/placeholder.jpg';
                     this.alt = 'Product image not available';
                 };
+                
+                // If it's a local image, add srcset for responsive images
+                if (!currentProduct.image.includes('http')) {
+                    const imgUrl = currentProduct.image.split('.');
+                    const ext = imgUrl.pop();
+                    const basePath = imgUrl.join('.');
+                    
+                    // Create srcset for responsive images
+                    mainProductImage.srcset = `
+                        ${basePath}-small.${ext} 300w,
+                        ${basePath}-medium.${ext} 600w,
+                        ${basePath}-large.${ext} 1200w
+                    `;
+                    mainProductImage.sizes = '(max-width: 768px) 100vw, 50vw';
+                    
+                    // If WebP is supported, add WebP version
+                    if (localStorage.getItem('supportsWebP') === 'true') {
+                        mainProductImage.srcset = `
+                            ${basePath}-small.webp 300w,
+                            ${basePath}-medium.webp 600w,
+                            ${basePath}-large.webp 1200w
+                        `;
+                    }
+                }
             }
             
             // Set rating
@@ -441,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
             card.innerHTML = `
                 <a href="product.html?id=${product.id}" class="product-link">
                     <div class="product-image-container">
-                        <img src="${product.image}" alt="${product.title}" class="product-image" 
+                        <img src="${product.image}" alt="${product.title}" class="product-image" loading="lazy"
                              onerror="this.src='assets/placeholder.jpg'; this.alt='Product image not available';">
                     </div>
                 </a>
@@ -1177,516 +1202,105 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // Enhanced Image Zoom functionality
+        // Simple image hover effect and fullscreen functionality
         const mainImageContainer = document.querySelector('.main-image-container');
         if (mainImageContainer && mainProductImage) {
-            // Create zoom lens and result elements
-            const zoomLens = document.createElement('div');
-            zoomLens.className = 'zoom-lens';
+            // Add a simple hover effect for the product image
+            mainImageContainer.addEventListener('mouseenter', function() {
+                mainProductImage.classList.add('hover-effect');
+            });
             
-            const zoomResult = document.createElement('div');
-            zoomResult.className = 'zoom-result';
+            mainImageContainer.addEventListener('mouseleave', function() {
+                mainProductImage.classList.remove('hover-effect');
+            });
             
-            // Create zoom controls
-            const zoomControls = document.createElement('div');
-            zoomControls.className = 'zoom-controls';
-            zoomControls.innerHTML = `
-                <button class="zoom-control zoom-in" aria-label="Zoom in">
-                    <i class="fas fa-plus"></i>
-                </button>
-                <button class="zoom-control zoom-out" aria-label="Zoom out">
-                    <i class="fas fa-minus"></i>
-                </button>
-                <button class="zoom-control zoom-reset" aria-label="Reset zoom">
-                    <i class="fas fa-undo"></i>
-                </button>
-            `;
+            // Fullscreen functionality
+            const fullscreenButton = document.querySelector('.fullscreen-button');
+            const fullscreenModal = document.getElementById('fullscreen-modal');
+            const fullscreenImage = document.getElementById('fullscreen-image');
+            const fullscreenClose = document.querySelector('.fullscreen-close');
             
-            // Add elements to the DOM
-            mainImageContainer.appendChild(zoomLens);
-            mainImageContainer.appendChild(zoomResult);
-            mainImageContainer.appendChild(zoomControls);
+            // Open fullscreen modal when clicking on the image or fullscreen button
+            mainProductImage.addEventListener('click', openFullscreen);
+            if (fullscreenButton) {
+                fullscreenButton.addEventListener('click', openFullscreen);
+            }
             
-            // Variables for zoom functionality
-            let zoomActive = false;
-            let cx, cy;
-            let zoomLevel = 2.5; // Increased default zoom level for better visibility
-            const minZoomLevel = 1.5;
-            const maxZoomLevel = 5; // Increased max zoom level
-            let isDragging = false;
-            let lastTouchDistance = 0;
-            let zoomMode = 'hover'; // 'hover' or 'lens'
+            // Close fullscreen modal
+            if (fullscreenClose) {
+                fullscreenClose.addEventListener('click', closeFullscreen);
+            }
             
-            // Initialize zoom
-            function initZoom() {
-                // Calculate the ratio between zoom result and lens
-                cx = zoomResult.offsetWidth / zoomLens.offsetWidth * zoomLevel;
-                cy = zoomResult.offsetHeight / zoomLens.offsetHeight * zoomLevel;
-                
-                // Set background properties for zoom result
-                zoomResult.style.backgroundImage = `url('${mainProductImage.src}')`;
-                zoomResult.style.backgroundSize = `${mainProductImage.width * cx}px ${mainProductImage.height * cy}px`;
-                
-                // Position the zoom result
-                const rect = mainImageContainer.getBoundingClientRect();
-                const isMobile = window.innerWidth <= 768;
-                
-                if (isMobile) {
-                    // On mobile, position the zoom result over the image
-                    zoomResult.style.top = '0';
-                    zoomResult.style.left = '0';
-                    zoomResult.style.width = '100%';
-                    zoomResult.style.height = '100%';
-                    zoomResult.style.position = 'absolute';
-                    zoomResult.style.zIndex = '30';
-                } else {
-                    // On desktop, position the zoom result to the right of the image
-                    zoomResult.style.top = '0';
-                    zoomResult.style.left = `${rect.width + 20}px`;
-                    
-                    // Adjust position if it would go off-screen
-                    const resultRect = zoomResult.getBoundingClientRect();
-                    if (resultRect.right > window.innerWidth) {
-                        zoomResult.style.left = 'auto';
-                        zoomResult.style.right = '0';
-                        zoomResult.style.top = `${rect.height + 20}px`;
-                    }
-                }
-                
-                // Add zoom mode toggle button
-                const zoomModeToggle = document.createElement('button');
-                zoomModeToggle.className = 'zoom-mode-toggle';
-                zoomModeToggle.innerHTML = '<i class="fas fa-search"></i> Toggle Zoom Mode';
-                zoomModeToggle.setAttribute('aria-label', 'Toggle between hover and lens zoom');
-                
-                // Add to zoom controls
-                zoomControls.appendChild(zoomModeToggle);
-                
-                // Toggle zoom mode
-                zoomModeToggle.addEventListener('click', function() {
-                    zoomMode = zoomMode === 'hover' ? 'lens' : 'hover';
-                    
-                    // Update UI to reflect current mode
-                    if (zoomMode === 'hover') {
-                        zoomModeToggle.innerHTML = '<i class="fas fa-search"></i> Lens Zoom';
-                        document.querySelector('.zoom-instructions').innerHTML = 
-                            '<i class="fas fa-search-plus"></i> Hover over image to zoom | Use mouse wheel to adjust zoom level';
-                    } else {
-                        zoomModeToggle.innerHTML = '<i class="fas fa-search-plus"></i> Hover Zoom';
-                        document.querySelector('.zoom-instructions').innerHTML = 
-                            '<i class="fas fa-search"></i> Move cursor to see details | Use mouse wheel to adjust zoom level';
-                    }
-                    
-                    // If currently zooming, update the view
-                    if (zoomActive) {
-                        stopZoom();
-                        startZoom();
-                    }
-                });
-                
-                // Add event listeners
-                mainImageContainer.addEventListener('mouseenter', startZoom);
-                mainImageContainer.addEventListener('mouseleave', stopZoom);
-                mainImageContainer.addEventListener('mousemove', moveZoom);
-                
-                // Touch support with improved handling
-                mainImageContainer.addEventListener('touchstart', handleTouchStart);
-                mainImageContainer.addEventListener('touchmove', handleTouchMove);
-                mainImageContainer.addEventListener('touchend', handleTouchEnd);
-                
-                // Zoom controls
-                const zoomInBtn = zoomControls.querySelector('.zoom-in');
-                const zoomOutBtn = zoomControls.querySelector('.zoom-out');
-                const zoomResetBtn = zoomControls.querySelector('.zoom-reset');
-                
-                zoomInBtn.addEventListener('click', function() {
-                    zoomLevel = Math.min(zoomLevel + 0.5, maxZoomLevel);
-                    updateZoom();
-                });
-                
-                zoomOutBtn.addEventListener('click', function() {
-                    zoomLevel = Math.max(zoomLevel - 0.5, minZoomLevel);
-                    updateZoom();
-                });
-                
-                zoomResetBtn.addEventListener('click', function() {
-                    zoomLevel = 2.5;
-                    updateZoom();
-                });
-                
-                // Mouse wheel zoom
-                mainImageContainer.addEventListener('wheel', function(e) {
-                    if (zoomActive) {
-                        e.preventDefault();
-                        if (e.deltaY < 0) {
-                            // Zoom in
-                            zoomLevel = Math.min(zoomLevel + 0.2, maxZoomLevel);
-                        } else {
-                            // Zoom out
-                            zoomLevel = Math.max(zoomLevel - 0.2, minZoomLevel);
-                        }
-                        updateZoom();
-                        moveZoom(e);
+            // Also close on modal background click
+            if (fullscreenModal) {
+                fullscreenModal.addEventListener('click', function(e) {
+                    if (e.target === fullscreenModal) {
+                        closeFullscreen();
                     }
                 });
             }
             
-            // Update zoom level
-            function updateZoom() {
-                cx = zoomResult.offsetWidth / zoomLens.offsetWidth * zoomLevel;
-                cy = zoomResult.offsetHeight / zoomLens.offsetHeight * zoomLevel;
-                
-                zoomResult.style.backgroundSize = `${mainProductImage.width * cx}px ${mainProductImage.height * cy}px`;
-                
-                // Update lens size based on zoom level
-                const lensSize = 100 / zoomLevel;
-                zoomLens.style.width = `${lensSize}px`;
-                zoomLens.style.height = `${lensSize}px`;
-                
-                // If zoom is active, update the position
-                if (zoomActive) {
-                    const lensRect = zoomLens.getBoundingClientRect();
-                    const x = parseFloat(zoomLens.style.left);
-                    const y = parseFloat(zoomLens.style.top);
-                    
-                    zoomResult.style.backgroundPosition = `-${x * cx}px -${y * cy}px`;
+            // Close on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && fullscreenModal.classList.contains('active')) {
+                    closeFullscreen();
                 }
-            }
+            });
             
-            // Start zoom
-            function startZoom() {
-                zoomActive = true;
-                mainImageContainer.classList.add('zooming');
-                
-                // Apply different styles based on zoom mode
-                if (zoomMode === 'hover') {
-                    zoomLens.style.display = 'none';
-                    zoomResult.style.borderRadius = '0';
-                    zoomResult.style.boxShadow = 'none';
-                    
-                    // For hover mode, make the zoom result cover the entire image
-                    const rect = mainImageContainer.getBoundingClientRect();
-                    zoomResult.style.width = rect.width + 'px';
-                    zoomResult.style.height = rect.height + 'px';
-                    zoomResult.style.top = '0';
-                    zoomResult.style.left = '0';
-                    zoomResult.style.position = 'absolute';
-                } else {
-                    // Lens mode
-                    zoomLens.style.display = 'block';
-                    zoomResult.style.borderRadius = '4px';
-                    zoomResult.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.1)';
-                    
-                    // Position the zoom result outside the image
-                    const rect = mainImageContainer.getBoundingClientRect();
-                    const isMobile = window.innerWidth <= 768;
-                    
-                    if (isMobile) {
-                        // On mobile, position the zoom result over the image but smaller
-                        zoomResult.style.width = '70%';
-                        zoomResult.style.height = '70%';
-                        zoomResult.style.top = '15%';
-                        zoomResult.style.left = '15%';
-                    } else {
-                        // On desktop, position to the right
-                        zoomResult.style.width = '300px';
-                        zoomResult.style.height = '300px';
-                        zoomResult.style.top = '0';
-                        zoomResult.style.left = `${rect.width + 20}px`;
-                        
-                        // Adjust if it would go off-screen
-                        const resultRect = zoomResult.getBoundingClientRect();
-                        if (resultRect.right > window.innerWidth) {
-                            zoomResult.style.left = 'auto';
-                            zoomResult.style.right = '0';
-                            zoomResult.style.top = `${rect.height + 20}px`;
-                        }
+            // Handle touch events for mobile
+            if (fullscreenImage) {
+                fullscreenImage.addEventListener('click', function(e) {
+                    // On mobile, clicking the image also closes the modal
+                    if (window.innerWidth <= 768) {
+                        e.stopPropagation();
+                        closeFullscreen();
                     }
-                }
+                });
                 
-                // Show zoom instructions
-                const zoomInstructions = document.querySelector('.zoom-instructions');
-                if (zoomInstructions) {
-                    if (zoomMode === 'hover') {
-                        zoomInstructions.innerHTML = '<i class="fas fa-search-plus"></i> Use mouse wheel or controls to adjust zoom level';
-                    } else {
-                        zoomInstructions.innerHTML = '<i class="fas fa-search"></i> Move cursor to see details | Use mouse wheel to adjust zoom level';
-                    }
-                    
-                    setTimeout(() => {
-                        if (zoomActive) {
-                            if (zoomMode === 'hover') {
-                                zoomInstructions.innerHTML = '<i class="fas fa-search-plus"></i> Hover over image to zoom';
-                            } else {
-                                zoomInstructions.innerHTML = '<i class="fas fa-search"></i> Move cursor to see details';
-                            }
-                        }
-                    }, 3000);
-                }
-            }
-            
-            // Stop zoom
-            function stopZoom() {
-                zoomActive = false;
-                mainImageContainer.classList.remove('zooming');
-                isDragging = false;
+                // Add swipe down to close
+                let touchStartY = 0;
+                let touchEndY = 0;
                 
-                // Reset zoom instructions
-                const zoomInstructions = document.querySelector('.zoom-instructions');
-                if (zoomInstructions) {
-                    if (zoomMode === 'hover') {
-                        zoomInstructions.innerHTML = '<i class="fas fa-search-plus"></i> Hover over image to zoom | Use mouse wheel to adjust zoom level';
-                    } else {
-                        zoomInstructions.innerHTML = '<i class="fas fa-search"></i> Click image to use lens zoom | Use mouse wheel to adjust zoom level';
+                fullscreenModal.addEventListener('touchstart', function(e) {
+                    touchStartY = e.changedTouches[0].screenY;
+                });
+                
+                fullscreenModal.addEventListener('touchend', function(e) {
+                    touchEndY = e.changedTouches[0].screenY;
+                    handleSwipe();
+                });
+                
+                function handleSwipe() {
+                    // If swiped down more than 100px, close the modal
+                    if (touchEndY - touchStartY > 100) {
+                        closeFullscreen();
                     }
                 }
             }
             
-            // Move zoom on mouse move
-            function moveZoom(e) {
-                if (!zoomActive) return;
-                
-                // Get cursor position
-                const pos = getCursorPos(e);
-                
-                if (zoomMode === 'hover') {
-                    // For hover mode, move the background image directly
-                    const rect = mainImageContainer.getBoundingClientRect();
-                    const xPercent = pos.x / mainProductImage.width;
-                    const yPercent = pos.y / mainProductImage.height;
+            function openFullscreen(e) {
+                e.preventDefault();
+                if (fullscreenModal && fullscreenImage) {
+                    // Set the fullscreen image source to the current main image
+                    fullscreenImage.src = mainProductImage.src;
+                    fullscreenImage.alt = mainProductImage.alt;
                     
-                    // Calculate background position
-                    const bgPosX = xPercent * (mainProductImage.width * cx - rect.width);
-                    const bgPosY = yPercent * (mainProductImage.height * cy - rect.height);
+                    // Show the modal
+                    fullscreenModal.classList.add('active');
                     
-                    // Set background position for zoom result
-                    zoomResult.style.backgroundPosition = `-${bgPosX}px -${bgPosY}px`;
-                } else {
-                    // Lens mode - traditional lens movement
-                    // Calculate lens position
-                    let x = pos.x - (zoomLens.offsetWidth / 2);
-                    let y = pos.y - (zoomLens.offsetHeight / 2);
-                    
-                    // Prevent lens from going outside the image
-                    if (x > mainProductImage.width - zoomLens.offsetWidth) {
-                        x = mainProductImage.width - zoomLens.offsetWidth;
-                    }
-                    if (x < 0) x = 0;
-                    if (y > mainProductImage.height - zoomLens.offsetHeight) {
-                        y = mainProductImage.height - zoomLens.offsetHeight;
-                    }
-                    if (y < 0) y = 0;
-                    
-                    // Set lens position
-                    zoomLens.style.left = x + "px";
-                    zoomLens.style.top = y + "px";
-                    
-                    // Set background position for zoom result
-                    zoomResult.style.backgroundPosition = `-${x * cx}px -${y * cy}px`;
+                    // Prevent scrolling on the body
+                    document.body.style.overflow = 'hidden';
                 }
             }
             
-            // Handle touch start
-            function handleTouchStart(e) {
-                if (e.touches.length === 1) {
-                    // Single touch - start zoom
-                    e.preventDefault();
+            function closeFullscreen() {
+                if (fullscreenModal) {
+                    fullscreenModal.classList.remove('active');
                     
-                    // Always use lens mode on mobile for better usability
-                    const previousMode = zoomMode;
-                    zoomMode = 'lens';
-                    
-                    startZoom();
-                    moveZoomTouch(e);
-                    
-                    // Enable dragging
-                    isDragging = true;
-                    
-                    // Create a close button for mobile zoom
-                    if (!document.querySelector('.mobile-zoom-close')) {
-                        const closeBtn = document.createElement('button');
-                        closeBtn.className = 'mobile-zoom-close';
-                        closeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                        closeBtn.setAttribute('aria-label', 'Close zoom view');
-                        
-                        closeBtn.addEventListener('click', function() {
-                            stopZoom();
-                            zoomMode = previousMode; // Restore previous zoom mode
-                            this.remove();
-                        });
-                        
-                        mainImageContainer.appendChild(closeBtn);
-                    }
-                } else if (e.touches.length === 2) {
-                    // Pinch to zoom
-                    e.preventDefault();
-                    
-                    // Always use hover mode for pinch zoom
-                    const previousMode = zoomMode;
-                    zoomMode = 'hover';
-                    
-                    startZoom();
-                    
-                    // Calculate initial distance between two fingers
-                    const touch1 = e.touches[0];
-                    const touch2 = e.touches[1];
-                    lastTouchDistance = Math.hypot(
-                        touch2.clientX - touch1.clientX,
-                        touch2.clientY - touch1.clientY
-                    );
+                    // Re-enable scrolling
+                    document.body.style.overflow = '';
                 }
             }
-            
-            // Handle touch move
-            function handleTouchMove(e) {
-                if (!zoomActive) return;
-                
-                if (e.touches.length === 1 && isDragging) {
-                    // Single touch - move lens
-                    e.preventDefault();
-                    moveZoomTouch(e);
-                } else if (e.touches.length === 2) {
-                    // Pinch to zoom
-                    e.preventDefault();
-                    
-                    // Calculate new distance between two fingers
-                    const touch1 = e.touches[0];
-                    const touch2 = e.touches[1];
-                    const newTouchDistance = Math.hypot(
-                        touch2.clientX - touch1.clientX,
-                        touch2.clientY - touch1.clientY
-                    );
-                    
-                    // Calculate zoom change
-                    const touchDiff = newTouchDistance - lastTouchDistance;
-                    if (Math.abs(touchDiff) > 10) {
-                        // Adjust zoom level based on pinch
-                        if (touchDiff > 0) {
-                            // Zoom in
-                            zoomLevel = Math.min(zoomLevel + 0.2, maxZoomLevel);
-                        } else {
-                            // Zoom out
-                            zoomLevel = Math.max(zoomLevel - 0.2, minZoomLevel);
-                        }
-                        updateZoom();
-                        lastTouchDistance = newTouchDistance;
-                    }
-                    
-                    // Move lens to center of pinch
-                    const centerX = (touch1.clientX + touch2.clientX) / 2;
-                    const centerY = (touch1.clientY + touch2.clientY) / 2;
-                    
-                    const rect = mainProductImage.getBoundingClientRect();
-                    const x = centerX - rect.left - (zoomLens.offsetWidth / 2);
-                    const y = centerY - rect.top - (zoomLens.offsetHeight / 2);
-                    
-                    if (zoomMode === 'hover') {
-                        // For hover mode, calculate background position
-                        const xPercent = x / mainProductImage.width;
-                        const yPercent = y / mainProductImage.height;
-                        
-                        // Calculate background position
-                        const bgPosX = xPercent * (mainProductImage.width * cx - rect.width);
-                        const bgPosY = yPercent * (mainProductImage.height * cy - rect.height);
-                        
-                        // Set background position for zoom result
-                        zoomResult.style.backgroundPosition = `-${bgPosX}px -${bgPosY}px`;
-                    } else {
-                        // Update lens position
-                        zoomLens.style.left = x + "px";
-                        zoomLens.style.top = y + "px";
-                        
-                        // Update zoom result
-                        zoomResult.style.backgroundPosition = `-${x * cx}px -${y * cy}px`;
-                    }
-                }
-            }
-            
-            // Handle touch end
-            function handleTouchEnd(e) {
-                if (e.touches.length === 0) {
-                    // All fingers lifted - stop zoom only if no close button is present
-                    // This allows the user to close the zoom view manually on mobile
-                    if (!document.querySelector('.mobile-zoom-close')) {
-                        stopZoom();
-                    }
-                } else if (e.touches.length === 1) {
-                    // One finger remains - continue with single touch
-                    isDragging = true;
-                    moveZoomTouch(e);
-                }
-            }
-            
-            // Move zoom on touch
-            function moveZoomTouch(e) {
-                if (!zoomActive) return;
-                
-                // Get touch position
-                const touch = e.touches[0] || e.changedTouches[0];
-                const pos = getCursorPosTouch(touch);
-                
-                if (zoomMode === 'hover') {
-                    // For hover mode, move the background image directly
-                    const rect = mainImageContainer.getBoundingClientRect();
-                    const xPercent = pos.x / mainProductImage.width;
-                    const yPercent = pos.y / mainProductImage.height;
-                    
-                    // Calculate background position
-                    const bgPosX = xPercent * (mainProductImage.width * cx - rect.width);
-                    const bgPosY = yPercent * (mainProductImage.height * cy - rect.height);
-                    
-                    // Set background position for zoom result
-                    zoomResult.style.backgroundPosition = `-${bgPosX}px -${bgPosY}px`;
-                } else {
-                    // Lens mode - traditional lens movement
-                    // Calculate lens position
-                    let x = pos.x - (zoomLens.offsetWidth / 2);
-                    let y = pos.y - (zoomLens.offsetHeight / 2);
-                    
-                    // Prevent lens from going outside the image
-                    if (x > mainProductImage.width - zoomLens.offsetWidth) {
-                        x = mainProductImage.width - zoomLens.offsetWidth;
-                    }
-                    if (x < 0) x = 0;
-                    if (y > mainProductImage.height - zoomLens.offsetHeight) {
-                        y = mainProductImage.height - zoomLens.offsetHeight;
-                    }
-                    if (y < 0) y = 0;
-                    
-                    // Set lens position
-                    zoomLens.style.left = x + "px";
-                    zoomLens.style.top = y + "px";
-                    
-                    // Set background position for zoom result
-                    zoomResult.style.backgroundPosition = `-${x * cx}px -${y * cy}px`;
-                }
-            }
-            
-            // Get cursor position
-            function getCursorPos(e) {
-                const rect = mainProductImage.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                return { x, y };
-            }
-            
-            // Get touch position
-            function getCursorPosTouch(touch) {
-                const rect = mainProductImage.getBoundingClientRect();
-                const x = touch.clientX - rect.left;
-                const y = touch.clientY - rect.top;
-                return { x, y };
-            }
-            
-            // Initialize zoom when image is loaded
-            if (mainProductImage.complete) {
-                initZoom();
-            } else {
-                mainProductImage.onload = initZoom;
-            }
-            
-            // Update zoom when window is resized
-            window.addEventListener('resize', initZoom);
         }
     }
     

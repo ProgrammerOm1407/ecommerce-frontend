@@ -4,9 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details - E-Commerce Frontend</title>
+    
+    <!-- Preload critical assets -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" as="style">
+    <link rel="preload" href="styles/main.css" as="style">
+    <link rel="preload" href="scripts/font-optimization.js" as="script">
+    
+    <!-- Font optimization script (load early) -->
+    <script src="scripts/font-optimization.js"></script>
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/product-detail.css">
+    <link rel="stylesheet" href="styles/mobile-styles.css">
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fakestoreapi.com">
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 </head>
 <body>
     <header>
@@ -74,14 +90,22 @@
                     <div class="product-gallery">
                         <div class="main-image-container">
                             <img id="main-product-image" src="" alt="" class="main-product-image">
-                            <div class="image-zoom-overlay"></div>
-                            <!-- Zoom lens and result will be added dynamically -->
+                            <button class="fullscreen-button" aria-label="View full screen">
+                                <i class="fas fa-expand"></i>
+                            </button>
                         </div>
                         <div class="thumbnail-container">
                             <!-- Thumbnails will be added dynamically if available -->
                         </div>
-                        <div class="zoom-instructions">
-                            <i class="fas fa-search-plus"></i> Hover over image to zoom | Use mouse wheel to adjust zoom level
+                        
+                        <!-- Full Screen Image Modal -->
+                        <div id="fullscreen-modal" class="fullscreen-modal">
+                            <div class="fullscreen-modal-content">
+                                <img id="fullscreen-image" src="" alt="" class="fullscreen-image">
+                                <button class="fullscreen-close" aria-label="Close full screen">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -254,10 +278,29 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     
+    <!-- Service worker registration -->
+    <script src="scripts/service-worker-registration.js"></script>
+    
     <!-- Our scripts -->
-    <script src="scripts/app.js"></script>
-    <script src="scripts/firebase-config.js"></script>
-    <script src="scripts/auth.js"></script>
-    <script src="scripts/product-detail.js"></script>
+    <script src="scripts/app.js" defer></script>
+    <script src="scripts/firebase-config.js" defer></script>
+    <script src="scripts/auth.js" defer></script>
+    <script src="scripts/image-optimization.js"></script>
+    <script src="scripts/product-detail.js" defer></script>
+    
+    <!-- Inline script for critical functionality -->
+    <script>
+        // Immediately show loading spinner
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check WebP support early
+            (function() {
+                const canvas = document.createElement('canvas');
+                if (canvas.getContext && canvas.getContext('2d')) {
+                    const supportsWebP = canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+                    localStorage.setItem('supportsWebP', supportsWebP);
+                }
+            })();
+        });
+    </script>
 </body>
 </html>

@@ -52,6 +52,7 @@
     border-radius: 4px;
     overflow: hidden;
     margin-bottom: 15px;
+    touch-action: manipulation; /* Improve touch handling on mobile */
 }
 
 .main-product-image {
@@ -65,82 +66,24 @@
     padding: 20px;
 }
 
-/* Image Zoom Functionality */
-.image-zoom-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0);
-    transition: background-color 0.3s;
-    cursor: zoom-in;
-}
-
-.image-zoom-overlay:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-}
-
+/* Simple image hover effect */
 .main-image-container:hover .main-product-image {
     transform: scale(1.05);
 }
 
-/* Enhanced Image Zoom */
-.zoom-lens {
-    position: absolute;
-    border: 2px solid #4a90e2;
-    width: 100px;
-    height: 100px;
-    background-repeat: no-repeat;
-    display: none;
-    pointer-events: none;
-    z-index: 10;
-    border-radius: 50%;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-    transition: width 0.3s, height 0.3s;
+.main-product-image.hover-effect {
+    transform: scale(1.05);
 }
 
-.zoom-result {
-    position: absolute;
-    border: 1px solid #d4d4d4;
-    width: 300px;
-    height: 300px;
-    background-repeat: no-repeat;
-    display: none;
-    overflow: hidden;
-    background-color: white;
-    z-index: 20;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
-}
-
-.main-image-container.zooming .zoom-lens,
-.main-image-container.zooming .zoom-result {
-    display: block;
-}
-
-/* Zoom Controls */
-.zoom-controls {
+/* Fullscreen button */
+.fullscreen-button {
     position: absolute;
     bottom: 10px;
     right: 10px;
-    display: none;
-    gap: 5px;
-    z-index: 25;
-    flex-wrap: wrap;
-    max-width: 120px;
-    justify-content: flex-end;
-}
-
-.main-image-container.zooming .zoom-controls {
-    display: flex;
-}
-
-.zoom-control {
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(255, 255, 255, 0.9);
     border: 1px solid #d4d4d4;
     display: flex;
     align-items: center;
@@ -148,6 +91,85 @@
     cursor: pointer;
     transition: all 0.2s;
     color: #4a90e2;
+    z-index: 5;
+    font-size: 1rem;
+    opacity: 0;
+}
+
+.main-image-container:hover .fullscreen-button {
+    opacity: 1;
+}
+
+.fullscreen-button:hover {
+    background-color: #4a90e2;
+    color: white;
+    transform: scale(1.1);
+}
+
+/* Fullscreen Modal */
+.fullscreen-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.fullscreen-modal.active {
+    display: flex;
+    opacity: 1;
+}
+
+.fullscreen-modal-content {
+    position: relative;
+    width: 90%;
+    height: 90%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fullscreen-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    transform: scale(0.95);
+    transition: transform 0.3s;
+}
+
+.fullscreen-modal.active .fullscreen-image {
+    transform: scale(1);
+}
+
+.fullscreen-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.fullscreen-close:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+    transform: scale(1.1);
 }
 
 .zoom-control:hover {
@@ -195,103 +217,27 @@
     color: #666;
     z-index: 35;
     font-size: 1.2rem;
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 
-.mobile-zoom-close:hover {
+.mobile-zoom-close:hover,
+.mobile-zoom-close:active {
     background-color: #f44336;
     color: white;
+    transform: scale(1.1);
 }
 
-/* Zoom animation */
-@keyframes zoomIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
+/* Removed zoom animations */
 
-.zoom-result {
-    animation: zoomIn 0.2s ease-out;
-}
-
-/* Mobile zoom styles */
+/* Mobile styles */
 @media (max-width: 768px) {
-    .zoom-result {
-        background-color: rgba(255, 255, 255, 0.95);
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-    }
-    
-    .main-image-container.zooming .main-product-image {
-        opacity: 0.2;
-    }
-    
-    .zoom-controls {
-        bottom: 20px;
-        right: 20px;
-        max-width: 180px;
-    }
-    
-    .zoom-control {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .zoom-mode-toggle {
-        height: 36px;
-        font-size: 0.9rem;
-        margin-top: 8px;
-    }
-    
-    /* Improved mobile touch zoom */
-    .main-image-container.zooming {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.9);
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-    }
-    
-    .main-image-container.zooming .main-product-image {
-        position: relative;
-        width: 100%;
-        height: auto;
-        max-height: 80vh;
+    /* Improved mobile product image display */
+    .main-product-image {
+        max-height: 70vh;
         object-fit: contain;
-        opacity: 0.1;
-    }
-    
-    .main-image-container.zooming .zoom-result {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 90%;
-        height: 80%;
-        max-width: 500px;
-        max-height: 80vh;
-        border-radius: 8px;
-    }
-    
-    .mobile-zoom-close {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        width: 50px;
-        height: 50px;
-        font-size: 1.5rem;
-        z-index: 1010;
     }
 }
+
 
 .thumbnail-container {
     display: flex;
@@ -1359,4 +1305,4 @@
         background: rgba(0, 0, 0, 0.5);
         z-index: 999;
     }
-}
+}/* Mobile styles */ 
