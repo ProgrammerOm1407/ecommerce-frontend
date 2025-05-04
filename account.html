@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - E-Commerce Frontend</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/auth.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo-container">
+                <a href="index.html">
+                    <img src="assets/logo.png" alt="Store Logo" class="logo">
+                </a>
+            </div>
+            
+            <nav class="main-nav" id="main-nav" aria-label="Main navigation">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+            
+            <div class="header-actions">
+                <form class="search-container" role="search" action="search.html" method="get">
+                    <input type="text" placeholder="Search products..." class="search-input" aria-label="Search products" name="q">
+                    <button type="submit" class="search-button" aria-label="Submit search">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </form>
+                
+                <div class="cart-container">
+                    <a href="cart.html" class="cart-icon" aria-label="Shopping cart">
+                        <i class="fa fa-shopping-cart"></i>
+                        <span class="cart-count" aria-label="Items in cart">0</span>
+                    </a>
+                </div>
+                
+                <div class="account-container">
+                    <a href="account.html" class="account-icon" aria-label="Account settings">
+                        <i class="fa fa-user-check"></i>
+                    </a>
+                </div>
+                
+                <div class="hamburger-menu" role="button" tabindex="0">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="auth-section account-section">
+            <div class="container">
+                <div class="auth-container">
+                    <div class="auth-header">
+                        <h1>My Account</h1>
+                        <p>Manage your account settings and view your order history.</p>
+                    </div>
+                    
+                    <div class="account-content">
+                        <div class="account-info">
+                            <h2>Account Information</h2>
+                            <div class="user-profile">
+                                <div class="profile-avatar">
+                                    <i class="fas fa-user-circle"></i>
+                                </div>
+                                <div class="profile-details">
+                                    <p class="user-name">Loading...</p>
+                                    <p class="user-email">Loading...</p>
+                                </div>
+                            </div>
+                            
+                            <div class="account-actions">
+                                <button id="logout-button" class="auth-button">
+                                    <span class="button-text">Logout</span>
+                                    <span class="button-loader"><i class="fas fa-spinner fa-spin"></i></span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="account-orders">
+                            <h2>Recent Orders</h2>
+                            <div class="orders-list">
+                                <p class="no-orders">You haven't placed any orders yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>About Us</h3>
+                    <p>We offer the best products at competitive prices.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <p>Email: info@example.com</p>
+                    <p>Phone: (123) 456-7890</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Follow Us</h3>
+                    <div class="social-icons">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 E-Commerce Store. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    
+    <!-- Our scripts -->
+    <script src="scripts/app.js"></script>
+    <script src="scripts/firebase-config.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/account.js"></script>
+</body>
+</html>

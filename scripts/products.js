@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="product-price">$${product.price.toFixed(2)}</div>
                 <div class="product-actions">
-                    <button class="add-to-cart-btn" onclick="addToCart(${product.id})">
+                    <button class="add-to-cart-btn" data-product-id="${product.id}">
                         <i class="fas fa-shopping-cart"></i>
                         Add to Cart
                     </button>
@@ -122,6 +122,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
         `;
+        
+        // Add event listener for the Add to Cart button
+        const addToCartBtn = card.querySelector('.add-to-cart-btn');
+        if (addToCartBtn) {
+            addToCartBtn.addEventListener('click', function() {
+                const productId = parseInt(this.getAttribute('data-product-id'));
+                if (productId) {
+                    // Use the global addToCart function if available, otherwise use the local one
+                    if (typeof window.addToCart === 'function') {
+                        window.addToCart(productId);
+                    } else {
+                        addToCart(productId);
+                    }
+                }
+            });
+        }
         
         return card;
     }

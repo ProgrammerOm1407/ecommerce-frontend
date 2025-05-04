@@ -28,20 +28,185 @@ header.scrolled {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background-color: #4a90e2;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 1100;
+    background-color: white;
+    color: #333;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     transform: translateY(100px);
     opacity: 0;
     transition: all 0.3s ease;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    max-width: 350px;
 }
 
 .notification.show {
     transform: translateY(0);
     opacity: 1;
+}
+
+.notification-icon {
+    font-size: 1.5rem;
+}
+
+.notification-success .notification-icon {
+    color: #28a745;
+}
+
+.notification-error .notification-icon {
+    color: #dc3545;
+}
+
+.notification-info .notification-icon {
+    color: #17a2b8;
+}
+
+.notification-warning .notification-icon {
+    color: #ffc107;
+}
+
+.notification-message {
+    flex: 1;
+    font-size: 0.95rem;
+}
+
+.notification-close {
+    color: #999;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 5px;
+    transition: color 0.3s;
+}
+
+.notification-close:hover {
+    color: #333;
+}
+
+/* Cart notification styles */
+.cart-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 1100;
+    max-width: 350px;
+    transform: translateX(120%);
+    transition: transform 0.3s ease-out;
+}
+
+.cart-notification.show {
+    transform: translateX(0);
+}
+
+.cart-notification-icon {
+    font-size: 1.5rem;
+    color: #28a745;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cart-notification-content {
+    flex: 1;
+}
+
+.cart-notification-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.cart-notification-message {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.cart-notification-close {
+    color: #999;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 5px;
+    transition: color 0.3s;
+}
+
+.cart-notification-close:hover {
+    color: #333;
+}
+
+.cart-notification-image {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+.cart-notification-variations {
+    margin: 5px 0;
+    font-size: 0.85rem;
+    color: #4a90e2;
+}
+
+/* Flying image animation */
+.flying-image {
+    position: fixed;
+    z-index: 9999;
+    border-radius: 50%;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    pointer-events: none;
+}
+
+/* Cart count animation */
+.cart-count {
+    display: inline-block;
+    background-color: #dc3545;
+    color: white;
+    border-radius: 50%;
+    min-width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+    text-align: center;
+    line-height: 18px;
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    transition: all 0.3s ease;
+}
+
+.cart-count.pulse {
+    animation: pulse 0.3s ease-in-out;
+}
+
+.cart-count.bounce {
+    animation: bounce 0.5s ease;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+    40% {transform: translateY(-10px);}
+    60% {transform: translateY(-5px);}
 }
 
 /* Search toggle for mobile */
@@ -280,6 +445,34 @@ header.scrolled {
 
 .cart-container:hover .cart-count {
     transform: scale(1.1);
+}
+
+/* Account Icon Styles */
+.account-container {
+    margin-right: 10px;
+    position: relative;
+    transition: transform 0.2s ease;
+}
+
+.account-container:hover {
+    transform: translateY(-2px);
+}
+
+.account-icon {
+    font-size: 1.4rem;
+    color: #444;
+    text-decoration: none;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.account-icon:hover {
+    color: #4a90e2;
+    background-color: rgba(74, 144, 226, 0.1);
 }
 
 /* Hamburger Menu Styles */

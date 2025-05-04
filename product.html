@@ -39,6 +39,12 @@
                     </a>
                 </div>
                 
+                <div class="account-container">
+                    <a href="auth.html" class="account-icon" aria-label="Login or create account">
+                        <i class="fa fa-user"></i>
+                    </a>
+                </div>
+                
                 <div class="hamburger-menu" role="button" tabindex="0">
                     <span></span>
                     <span></span>
@@ -69,9 +75,13 @@
                         <div class="main-image-container">
                             <img id="main-product-image" src="" alt="" class="main-product-image">
                             <div class="image-zoom-overlay"></div>
+                            <!-- Zoom lens and result will be added dynamically -->
                         </div>
                         <div class="thumbnail-container">
                             <!-- Thumbnails will be added dynamically if available -->
+                        </div>
+                        <div class="zoom-instructions">
+                            <i class="fas fa-search-plus"></i> Hover over image to zoom | Use mouse wheel to adjust zoom level
                         </div>
                     </div>
 
@@ -91,40 +101,99 @@
                         <div class="product-variations">
                             <!-- Variations will be added dynamically if available -->
                             <div class="variation-container size-variation hidden">
-                                <label for="size-select">Size:</label>
+                                <label for="size-select">Size: <span class="selected-value"></span></label>
                                 <div class="size-options">
-                                    <button class="size-option active">S</button>
-                                    <button class="size-option">M</button>
-                                    <button class="size-option">L</button>
-                                    <button class="size-option">XL</button>
+                                    <button class="size-option" data-size="XS">XS</button>
+                                    <button class="size-option" data-size="S">S</button>
+                                    <button class="size-option" data-size="M">M</button>
+                                    <button class="size-option" data-size="L">L</button>
+                                    <button class="size-option" data-size="XL">XL</button>
+                                    <button class="size-option" data-size="XXL">XXL</button>
+                                </div>
+                                <div class="size-guide-link">
+                                    <a href="#" id="size-guide-trigger">
+                                        <i class="fas fa-ruler-combined"></i> Size Guide
+                                    </a>
                                 </div>
                             </div>
                             
                             <div class="variation-container color-variation hidden">
-                                <label for="color-select">Color:</label>
+                                <label for="color-select">Color: <span class="selected-value"></span></label>
                                 <div class="color-options">
-                                    <button class="color-option" style="background-color: #000000;" data-color="Black"></button>
-                                    <button class="color-option" style="background-color: #FFFFFF;" data-color="White"></button>
-                                    <button class="color-option" style="background-color: #0000FF;" data-color="Blue"></button>
-                                    <button class="color-option" style="background-color: #FF0000;" data-color="Red"></button>
+                                    <button class="color-option" style="background-color: #000000;" data-color="Black" aria-label="Black">
+                                        <span class="tooltip">Black</span>
+                                    </button>
+                                    <button class="color-option" style="background-color: #FFFFFF;" data-color="White" aria-label="White">
+                                        <span class="tooltip">White</span>
+                                    </button>
+                                    <button class="color-option" style="background-color: #0000FF;" data-color="Blue" aria-label="Blue">
+                                        <span class="tooltip">Blue</span>
+                                    </button>
+                                    <button class="color-option" style="background-color: #FF0000;" data-color="Red" aria-label="Red">
+                                        <span class="tooltip">Red</span>
+                                    </button>
+                                    <button class="color-option" style="background-color: #008000;" data-color="Green" aria-label="Green">
+                                        <span class="tooltip">Green</span>
+                                    </button>
+                                    <button class="color-option" style="background-color: #FFC0CB;" data-color="Pink" aria-label="Pink">
+                                        <span class="tooltip">Pink</span>
+                                    </button>
                                 </div>
                             </div>
+                            
+                            <div class="variation-container material-variation hidden">
+                                <label for="material-select">Material: <span class="selected-value"></span></label>
+                                <div class="material-options">
+                                    <button class="material-option" data-material="Cotton">Cotton</button>
+                                    <button class="material-option" data-material="Polyester">Polyester</button>
+                                    <button class="material-option" data-material="Wool">Wool</button>
+                                    <button class="material-option" data-material="Leather">Leather</button>
+                                </div>
+                            </div>
+                            
+                            <div class="variation-preview"></div>
                         </div>
                         
                         <div class="product-actions">
-                            <div class="quantity-selector">
-                                <button class="quantity-btn minus" aria-label="Decrease quantity">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                                <input type="number" id="quantity" value="1" min="1" max="99" aria-label="Product quantity">
-                                <button class="quantity-btn plus" aria-label="Increase quantity">
-                                    <i class="fas fa-plus"></i>
-                                </button>
+                            <div class="quantity-container">
+                                <label for="quantity">Quantity:</label>
+                                <div class="quantity-selector">
+                                    <button class="quantity-btn minus" aria-label="Decrease quantity">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="number" id="quantity" value="1" min="1" max="99" aria-label="Product quantity">
+                                    <button class="quantity-btn plus" aria-label="Increase quantity">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <div class="quantity-limit">
+                                    <span id="stock-quantity">99</span> items available
+                                </div>
+                            </div>
+                            
+                            <div class="price-summary">
+                                <div class="price-row">
+                                    <span class="price-label">Price:</span>
+                                    <span class="price-value" id="unit-price"></span>
+                                </div>
+                                <div class="price-row">
+                                    <span class="price-label">Quantity:</span>
+                                    <span class="price-value" id="quantity-display">1</span>
+                                </div>
+                                <div class="price-row total">
+                                    <span class="price-label">Total:</span>
+                                    <span class="price-value" id="total-price"></span>
+                                </div>
                             </div>
                             
                             <button id="add-to-cart-btn" class="add-to-cart-btn">
                                 <i class="fas fa-shopping-cart"></i>
                                 Add to Cart
+                            </button>
+                            
+                            <button id="buy-now-btn" class="buy-now-btn">
+                                <i class="fas fa-bolt"></i>
+                                Buy Now
                             </button>
                         </div>
                         
@@ -181,7 +250,14 @@
         </div>
     </footer>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    
+    <!-- Our scripts -->
     <script src="scripts/app.js"></script>
+    <script src="scripts/firebase-config.js"></script>
+    <script src="scripts/auth.js"></script>
     <script src="scripts/product-detail.js"></script>
 </body>
 </html>

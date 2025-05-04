@@ -16,5 +16,8 @@
     "url": "https://github.com/ProgrammerOm1407/ecommerce-frontend/issues"
   },
   "homepage": "https://github.com/ProgrammerOm1407/ecommerce-frontend#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "firebase": "^11.6.1"
+  }
 }

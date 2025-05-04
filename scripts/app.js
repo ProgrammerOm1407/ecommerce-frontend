@@ -185,26 +185,40 @@ document.addEventListener('DOMContentLoaded', function() {
         lastScrollTop = scrollTop;
     });
     
-    // Cart functionality
-    function updateCartCount(count) {
-        if (cartCount) {
+    // Cart functionality - make it globally available
+    window.updateCartCount = function(count) {
+        const cartCount = document.querySelector('.cart-count');
+        if (!cartCount) return;
+        
+        if (typeof count === 'number') {
+            // If a specific count is provided, use it
             cartCount.textContent = count;
-            
-            // Add animation effect
-            cartCount.classList.add('pulse');
-            setTimeout(() => {
-                cartCount.classList.remove('pulse');
-            }, 300);
+        } else {
+            // Otherwise, calculate from cart in localStorage
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+            cartCount.textContent = totalItems;
         }
-    }
+        
+        // Add animation effect
+        cartCount.classList.add('pulse');
+        setTimeout(() => {
+            cartCount.classList.remove('pulse');
+        }, 300);
+    };
     
     // Set initial cart count from localStorage
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-    updateCartCount(totalItems);
+    window.updateCartCount();
     
-    // Add to cart functionality
-    window.addToCart = function(productId) {
+    // Make sure cart count is updated when localStorage changes
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'cart') {
+            window.updateCartCount();
+        }
+    });
+    
+    // Enhanced add to cart functionality
+    window.addToCart = function(productId, quantity = 1) {
         console.log('Adding product to cart:', productId);
         
         // Get current cart from localStorage or initialize empty array
@@ -225,57 +239,178 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     if (existingProductIndex >= 0) {
                         // Increment quantity if product already in cart
-                        cart[existingProductIndex].quantity += 1;
+                        cart[existingProductIndex].quantity += quantity;
+                        
+                        // Show notification
+                        if (typeof showCartNotification === 'function') {
+                            showCartNotification(
+                                'Cart Updated',
+                                `Added ${quantity} more to your cart`,
+                                '',
+                                `Total in cart: ${cart[existingProductIndex].quantity}`,
+                                product.image
+                            );
+                        } else {
+                            showNotification(`Added ${quantity} more ${product.title} to cart!`);
+                        }
                     } else {
-                        // Add new product to cart
+                        // Add new product to cart with enhanced details
                         cart.push({
                             id: product.id,
                             title: product.title,
                             price: product.price,
                             image: product.image,
-                            quantity: 1
+                            quantity: quantity,
+                            category: product.category,
+                            addedAt: new Date().toISOString()
                         });
+                        
+                        // Show notification
+                        if (typeof showCartNotification === 'function') {
+                            showCartNotification(
+                                'Added to Cart',
+                                `${quantity} × ${product.title.length > 25 ? product.title.substring(0, 25) + '...' : product.title}`,
+                                '',
+                                `$${(product.price * quantity).toFixed(2)}`,
+                                product.image
+                            );
+                        } else {
+                            showNotification(`Added ${product.title} to cart!`);
+                        }
                     }
                     
                     // Save updated cart to localStorage
                     localStorage.setItem('cart', JSON.stringify(cart));
                     
                     // Update cart count
-                    const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-                    updateCartCount(totalItems);
+                    window.updateCartCount();
                     
-                    // Show notification
-                    showNotification(`Added ${product.title} to cart!`);
+                    // Add animation to cart icon
+                    const cartIcon = document.querySelector('.cart-icon');
+                    if (cartIcon) {
+                        // Add flying animation from product image to cart
+                        const productImg = document.querySelector(`[data-product-id="${productId}"] img`) || 
+                                          document.querySelector('.product-image img');
+                        
+                        if (productImg) {
+                            const flyingImg = document.createElement('img');
+                            flyingImg.src = product.image;
+                            flyingImg.className = 'flying-image';
+                            flyingImg.style.position = 'fixed';
+                            
+                            // Get positions
+                            const imgRect = productImg.getBoundingClientRect();
+                            const cartRect = cartIcon.getBoundingClientRect();
+                            
+                            // Set initial position
+                            flyingImg.style.top = `${imgRect.top + imgRect.height/2}px`;
+                            flyingImg.style.left = `${imgRect.left + imgRect.width/2}px`;
+                            flyingImg.style.width = '50px';
+                            flyingImg.style.height = '50px';
+                            flyingImg.style.objectFit = 'contain';
+                            flyingImg.style.borderRadius = '50%';
+                            flyingImg.style.zIndex = '9999';
+                            flyingImg.style.transition = 'all 0.8s cubic-bezier(0.18, 0.89, 0.32, 1.28)';
+                            flyingImg.style.opacity = '0';
+                            
+                            document.body.appendChild(flyingImg);
+                            
+                            // Trigger animation
+                            setTimeout(() => {
+                                flyingImg.style.top = `${cartRect.top + cartRect.height/2}px`;
+                                flyingImg.style.left = `${cartRect.left + cartRect.width/2}px`;
+                                flyingImg.style.width = '20px';
+                                flyingImg.style.height = '20px';
+                                flyingImg.style.opacity = '1';
+                            }, 10);
+                            
+                            // Remove element after animation
+                            setTimeout(() => {
+                                flyingImg.style.opacity = '0';
+                                setTimeout(() => {
+                                    if (document.body.contains(flyingImg)) {
+                                        document.body.removeChild(flyingImg);
+                                    }
+                                }, 300);
+                                
+                                // Bounce the cart icon
+                                cartIcon.classList.add('bounce');
+                                setTimeout(() => {
+                                    cartIcon.classList.remove('bounce');
+                                }, 1000);
+                            }, 800);
+                        } else {
+                            // Fallback if product image not found
+                            cartIcon.classList.add('bounce');
+                            setTimeout(() => {
+                                cartIcon.classList.remove('bounce');
+                            }, 1000);
+                        }
+                    }
                 })
                 .catch(error => {
                     console.error('Error adding to cart:', error);
                     
                     // Fallback implementation if product fetch fails
-                    const currentCount = parseInt(cartCount.textContent || 0);
-                    const newCount = currentCount + 1;
-                    updateCartCount(newCount);
-                    
-                    // Show notification
-                    showNotification('Item added to cart!');
+                    showNotification('Error adding item to cart. Please try again.', 'error');
                 });
         } else {
-            // Simple increment for demo buttons without product ID
-            const currentCount = parseInt(cartCount.textContent || 0);
-            const newCount = currentCount + 1;
-            updateCartCount(newCount);
-            
-            // Show notification
-            showNotification('Item added to cart!');
+            // Show error for missing product ID
+            showNotification('Error: Product ID is required', 'error');
         }
     };
     
-    // Notification function
-    function showNotification(message) {
+    // Notification function - make it globally available
+    window.showNotification = function(message, type = 'success') {
+        // Remove any existing notifications
+        const existingNotification = document.querySelector('.notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+        
         const notification = document.createElement('div');
         notification.className = 'notification';
-        notification.textContent = message;
+        
+        // Add type class
+        if (type) {
+            notification.classList.add(`notification-${type}`);
+        }
+        
+        // Set icon based on type
+        let icon = 'check-circle';
+        
+        if (type === 'error') {
+            icon = 'exclamation-circle';
+        } else if (type === 'info') {
+            icon = 'info-circle';
+        } else if (type === 'warning') {
+            icon = 'exclamation-triangle';
+        }
+        
+        notification.innerHTML = `
+            <div class="notification-icon">
+                <i class="fas fa-${icon}"></i>
+            </div>
+            <div class="notification-message">${message}</div>
+            <div class="notification-close">
+                <i class="fas fa-times"></i>
+            </div>
+        `;
         
         document.body.appendChild(notification);
+        
+        // Add close button functionality
+        const closeBtn = notification.querySelector('.notification-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            });
+        }
         
         // Trigger animation
         setTimeout(() => {
@@ -284,11 +419,76 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Remove after animation
         setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 300);
-        }, 2000);
+            if (document.body.contains(notification)) {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }
+        }, 4000);
+    };
+    
+    // Enhanced cart notification function - make it globally available
+    window.showCartNotification = function(title, message, variations, price, image) {
+        // Remove any existing notifications
+        const existingNotification = document.querySelector('.cart-notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+        
+        // Create new notification
+        const notification = document.createElement('div');
+        notification.className = 'cart-notification';
+        
+        // Create notification content
+        notification.innerHTML = `
+            <img src="${image}" alt="Product" class="cart-notification-image">
+            <div class="cart-notification-content">
+                <div class="cart-notification-title">${title}</div>
+                <div class="cart-notification-message">
+                    ${message}
+                    ${variations ? `<div class="cart-notification-variations">${variations}</div>` : ''}
+                    <strong>${price}</strong>
+                </div>
+            </div>
+            <div class="cart-notification-close">
+                <i class="fas fa-times"></i>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Add close button functionality
+        const closeBtn = notification.querySelector('.cart-notification-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            });
+        }
+        
+        // Trigger animation
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
+        
+        // Remove after animation
+        setTimeout(() => {
+            if (document.body.contains(notification)) {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }
+        }, 5000);
     }
     
     // Close menu when clicking outside

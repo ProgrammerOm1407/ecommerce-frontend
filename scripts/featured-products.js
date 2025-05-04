@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="product-price">$${product.price.toFixed(2)}</div>
                 <div class="product-actions">
-                    <button class="add-to-cart-btn" onclick="window.addToCart(${product.id})">
+                    <button class="add-to-cart-btn" data-product-id="${product.id}">
                         <i class="fas fa-shopping-cart"></i>
                         Add to Cart
                     </button>
@@ -74,6 +74,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
         `;
+        
+        // Add event listener for the Add to Cart button
+        const addToCartBtn = card.querySelector('.add-to-cart-btn');
+        if (addToCartBtn) {
+            addToCartBtn.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                if (productId && typeof window.addToCart === 'function') {
+                    window.addToCart(parseInt(productId));
+                }
+            });
+        }
         
         return card;
     }
