@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="product-price">$${product.price.toFixed(2)}</div>
                 <div class="product-actions">
-                    <button class="add-to-cart-btn" onclick="addToCart(${product.id})">
+                    <button class="add-to-cart-btn" onclick="window.addToCart(${product.id})">
                         <i class="fas fa-shopping-cart"></i>
                         Add to Cart
                     </button>
@@ -121,26 +121,30 @@ document.addEventListener('DOMContentLoaded', function() {
         ).join(' ');
     }
     
-    // Add to cart functionality (reusing from app.js)
-    window.addToCart = function(productId) {
-        // Call the existing addToCart function if it exists
+    // Add to cart functionality
+    // We'll use the implementation from app.js
+    // This function is just a wrapper to ensure we don't override the main implementation
+    function handleAddToCart(productId) {
+        console.log('Featured products: Adding to cart:', productId);
+        
+        // Check if the main addToCart function exists
         if (typeof window.addToCart === 'function') {
+            // Call the main implementation
             window.addToCart(productId);
         } else {
-            // Fallback implementation
-            const currentCount = parseInt(document.querySelector('.cart-count').textContent || 0);
-            const newCount = currentCount + 1;
+            console.error('Main addToCart function not found');
             
-            // Update cart count
-            document.querySelector('.cart-count').textContent = newCount;
-            
-            // Save to localStorage
-            localStorage.setItem('cartCount', newCount);
+            // Simple fallback if the main function is not available
+            const cartCount = document.querySelector('.cart-count');
+            if (cartCount) {
+                const currentCount = parseInt(cartCount.textContent || 0);
+                cartCount.textContent = currentCount + 1;
+            }
             
             // Show notification
             showNotification('Item added to cart!');
         }
-    };
+    }
     
     // Show notification (reusing from app.js)
     function showNotification(message) {

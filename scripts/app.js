@@ -199,18 +199,74 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Set initial cart count from localStorage
-    const savedCartCount = localStorage.getItem('cartCount') || 0;
-    updateCartCount(savedCartCount);
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+    updateCartCount(totalItems);
     
-    // Add to cart functionality (for demonstration)
-    window.addToCart = function() {
-        const currentCount = parseInt(cartCount.textContent || 0);
-        const newCount = currentCount + 1;
-        updateCartCount(newCount);
-        localStorage.setItem('cartCount', newCount);
+    // Add to cart functionality
+    window.addToCart = function(productId) {
+        console.log('Adding product to cart:', productId);
         
-        // Show notification
-        showNotification('Item added to cart!');
+        // Get current cart from localStorage or initialize empty array
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        
+        // If we have a product ID, fetch the product details
+        if (productId) {
+            fetch(`https://fakestoreapi.com/products/${productId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Product not found');
+                    }
+                    return response.json();
+                })
+                .then(product => {
+                    // Check if product is already in cart
+                    const existingProductIndex = cart.findIndex(item => item.id === product.id);
+                    
+                    if (existingProductIndex >= 0) {
+                        // Increment quantity if product already in cart
+                        cart[existingProductIndex].quantity += 1;
+                    } else {
+                        // Add new product to cart
+                        cart.push({
+                            id: product.id,
+                            title: product.title,
+                            price: product.price,
+                            image: product.image,
+                            quantity: 1
+                        });
+                    }
+                    
+                    // Save updated cart to localStorage
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                    
+                    // Update cart count
+                    const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+                    updateCartCount(totalItems);
+                    
+                    // Show notification
+                    showNotification(`Added ${product.title} to cart!`);
+                })
+                .catch(error => {
+                    console.error('Error adding to cart:', error);
+                    
+                    // Fallback implementation if product fetch fails
+                    const currentCount = parseInt(cartCount.textContent || 0);
+                    const newCount = currentCount + 1;
+                    updateCartCount(newCount);
+                    
+                    // Show notification
+                    showNotification('Item added to cart!');
+                });
+        } else {
+            // Simple increment for demo buttons without product ID
+            const currentCount = parseInt(cartCount.textContent || 0);
+            const newCount = currentCount + 1;
+            updateCartCount(newCount);
+            
+            // Show notification
+            showNotification('Item added to cart!');
+        }
     };
     
     // Notification function

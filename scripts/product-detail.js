@@ -383,7 +383,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="product-price">$${product.price.toFixed(2)}</div>
                     <div class="product-actions">
-                        <button class="add-to-cart-btn" onclick="addToCart(${product.id})">
+                        <button class="add-to-cart-btn" onclick="window.addToCart(${product.id})">
                             <i class="fas fa-shopping-cart"></i>
                             Add to Cart
                         </button>
